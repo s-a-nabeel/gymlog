@@ -1,0 +1,3 @@
+# Netlify config — drop this folder into Netlify for free hosting
+[build]
+  publish = "."
