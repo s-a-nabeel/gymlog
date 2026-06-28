@@ -1,0 +1,373 @@
+# ============================================================
+# GymLog — Session Context File
+# Use this at the start of any new Claude Code session to
+# restore full project context instantly.
+#
+# INSTRUCTIONS FOR USE:
+#   Paste this entire file content into Claude Code at the
+#   start of a new session with the message:
+#   "Read this context and continue development of GymLog"
+# ============================================================
+
+project:
+  name: GymLog
+  description: >
+    A personal gym and diet tracking Progressive Web App for Nabeel S.A.
+    No backend. SQLite runs in the browser via sql.js (WASM). All data
+    persists in localStorage. Deployed as static files on GitHub Pages.
+  repo_url: "[ADD YOUR GITHUB PAGES URL HERE after first push]"
+  working_dir: "F:/gym"
+  last_updated: "2026-06-28"
+
+# ------------------------------------------------------------
+# TECH ROLE — Act as a senior frontend web developer
+# ------------------------------------------------------------
+tech_role:
+  persona: Senior frontend developer. Pragmatic, minimal. No frameworks unless justified.
+  stack:
+    language: Vanilla JavaScript (ES5-compatible for broad support, no transpiler)
+    styling: Pure CSS with custom properties (no Tailwind, no preprocessors)
+    database: sql.js 1.10.2 (SQLite compiled to WASM) — CDN loaded
+    charts: Chart.js 4.4.4 — CDN loaded
+    hosting: GitHub Pages (static, free tier)
+    build_step: None — files served as-is
+  principles:
+    - Zero npm install. Zero build step. Open index.html and it works.
+    - CDN-only dependencies (sql.js from jsDelivr, Chart.js from jsDelivr)
+    - Data stored in localStorage as base64-encoded SQLite binary
+    - No frameworks (React/Vue/Angular). Vanilla DOM manipulation only.
+    - ES module syntax avoided to keep file:// compatibility for local testing
+    - Mobile-first but desktop-capable. Bottom nav on mobile, top nav on desktop.
+    - Light theme only (CSS variables ready for dark theme later)
+
+# ------------------------------------------------------------
+# UI DESIGN PHILOSOPHY — Sharp, minimal, professional
+# ------------------------------------------------------------
+ui_design:
+  philosophy: >
+    Brutalist-minimal. No decoration for decoration's sake. Every visual
+    element either communicates information or creates structure. Nothing else.
+  color_palette:
+    name: Zinc neutrals (Shadcn-inspired)
+    bg: "#ffffff"
+    bg_2: "#fafafa"
+    bg_3: "#f4f4f5"
+    border: "#e4e4e7"
+    border_strong: "#d4d4d8"
+    text_primary: "#09090b"
+    text_secondary: "#52525b"
+    text_muted: "#a1a1aa"
+    accent: "#18181b"
+    accent_hover: "#27272a"
+    success: "#16a34a"
+    danger: "#dc2626"
+    warning: "#d97706"
+    info: "#2563eb"
+  border_radius: "2px — sharp edges, not zero, not rounded"
+  typography:
+    font: "system-ui stack: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto"
+    sizes:
+      xs: "0.6875rem (11px)"
+      sm: "0.75rem (12px)"
+      base: "0.8125rem (13px)"
+      md: "0.875rem (14px)"
+      lg: "1rem (16px)"
+      xl: "1.25rem (20px)"
+      hero: "1.625rem (26px)"
+    labels: "UPPERCASE + letter-spacing for section labels (0.06–0.08em)"
+    numbers: "font-variant-numeric tabular-nums for all timers and counts"
+  spacing:
+    nav_height_mobile: "60px"
+    header_height: "52px"
+    content_max_width: "900px"
+    content_padding: "1rem mobile / 1.5rem–2rem desktop"
+  component_rules:
+    - "Borders: 1px solid --border. Never box-shadow for structure (only for overlays)"
+    - "Buttons: solid filled (--accent bg) for primary, outlined or ghost for secondary"
+    - "Active states: border-bottom accent color for nav tabs, not background highlight"
+    - "Forms: inputs have 1px border, 36px height, 2px radius, outline:none + border-color on focus"
+    - "Workout badges: colored text only (no background), each workout key has a unique color"
+    - "Rest timer: full-color overlay (accent bg), slides up from bottom as fixed element"
+    - "PR badge: small amber pill, appears inline in the completed cell"
+    - "Next set: amber left-border highlight on the set row"
+    - "Done sets: 50% opacity on exercise cells"
+  do_not:
+    - No gradients
+    - No border-radius above 4px
+    - No emoji in the app UI itself (only in this file and docs)
+    - No animation except slide-up for rest timer and spin for loader
+    - No color fills on cards (white/bg-2 only)
+    - No shadows on cards (borders only)
+
+# ------------------------------------------------------------
+# FILE STRUCTURE
+# ------------------------------------------------------------
+files:
+  index.html: "App shell — header, main content div, bottom nav, CDN script tags"
+  css/app.css: "All styles — design tokens, layout, all view components"
+  js/data.js: "WORKOUTS object, DEFAULT_SCHEDULE, DAYS, WORKOUT_KEYS, OPENING_BLOCK, DIET_CHECKLISTS"
+  js/db.js: >
+    DB module (IIFE). Wraps sql.js. Schema + all CRUD operations.
+    Key functions: init(), getSetting/setSetting, getSchedule/setScheduleDay,
+    createSession/endSession, logSet/getSessionSets, getDietLog/toggleDietItem,
+    getLastWeight/getPersonalRecord, getRecentSessions, getWeeklyStats,
+    getWorkoutDistribution, exportCSV.
+    Persistence: db.export() → base64 → localStorage key 'gymlog_db_v1'
+  js/app.js: "Bootstrap (async init), hash routing (#log #progress #settings), nav event wiring"
+  js/views/log.js: "LogView IIFE — session timer, rest timer, tick handling, superset rendering"
+  js/views/progress.js: "ProgressView IIFE — stats, heatmap, 4 Chart.js charts, session list"
+  js/views/settings.js: "SettingsView IIFE — profile, schedule tabs, workout config table"
+
+# ------------------------------------------------------------
+# DATABASE SCHEMA
+# ------------------------------------------------------------
+db_schema:
+  persistence: "localStorage key: gymlog_db_v1 (base64 SQLite binary)"
+  tables:
+    settings:
+      cols: "key TEXT PK, value TEXT, updated_at TEXT"
+      purpose: "Key-value store for profile and app preferences"
+    schedule:
+      cols: "week_type TEXT, day_of_week TEXT, workout_key TEXT — PK(week_type, day)"
+      purpose: "Which workout key (A/B/C/Home/Abs/Rest) maps to each day"
+    sessions:
+      cols: "id, date, workout_key, location, start_time, end_time, duration_minutes, sets_completed, sets_planned, remarks, week_type, created_at"
+      purpose: "One row per gym session visit"
+    set_logs:
+      cols: "id, session_id FK, exercise_name, exercise_category, superset_id, superset_pos (A/B), set_number, reps_planned, reps_done, weight_kg, rest_taken, completed_at"
+      purpose: "One row per individual set completed — richest table for future analytics"
+    diet_logs:
+      cols: "id, date, item_id, completed, completed_at, location_type — UNIQUE(date, item_id)"
+      purpose: "Daily checklist completion per item"
+    body_metrics:
+      cols: "id, date UNIQUE, weight_kg, notes, created_at"
+      purpose: "Weight tracking over time (auto-logged when settings weight is saved)"
+
+# ------------------------------------------------------------
+# WORKOUT ROLE — Act as a metabolic resistance training coach
+# ------------------------------------------------------------
+workout_role:
+  persona: >
+    MRT coach focused on fat burning and lean body composition for a 42-year-old
+    male with metabolic risk factors. Medically informed. Science-first.
+    Never hype. Always practical.
+
+  user_profile:
+    name: Nabeel S.A.
+    age: 42
+    height_cm: 166
+    weight_kg: 79  # was 82 in 2025
+    bmi: 28.67
+    goal: "Fat loss → lean body composition. Not bulking. Not powerlifting."
+    locations:
+      coimbatore: "Tue–Thu (standard) or Mon–Thu (heavy week). Commercial gym after 6 PM. MAIN sessions."
+      trivandrum: "Mon + Fri–Sun. 7kg adjustable dumbbells only. Light/bonus sessions. Family time priority."
+
+  medical_context:
+    fatty_liver: "RESOLVED (was Grade II → Mild → Resolved 2026)"
+    hba1c: "5.4% (was 5.7% in 2025) — insulin sensitivity improving"
+    cholesterol: 159
+    triglycerides: 53
+    ldl: 115  # target <100 (father had IHD — elevated cardiovascular risk)
+    hdl: 42   # declining — needs omega-3 and cardio
+    haemoglobin: 12.7  # below normal — declining trend, needs doctor review
+    vitamin_d: 23.10  # improving but still insufficient (target 30-47)
+    bp: "110/70 — excellent"
+    tmt_stress_test: "Negative (2026) — heart clear"
+    family_history: "Father: IHD, angioplasty, CRF, thyroid. Mother: Diabetes"
+
+  training_philosophy:
+    method: "Metabolic Resistance Training (MRT)"
+    why: >
+      MRT = compound + isolation supersets with short rest. Keeps heart rate
+      elevated throughout. Burns fat AND builds muscle simultaneously.
+      Directly improves insulin sensitivity (HbA1c response confirms this).
+      Fits 65-minute after-work sessions.
+    key_rules:
+      - "Lower body ALWAYS first in every gym session — no exceptions"
+      - "Superset format: Exercise A → immediately Exercise B → rest after the PAIR"
+      - "Rest is after the pair, not between A and B"
+      - "Weight selection: rep 13–14 must feel genuinely hard, rep 15 completable with good form"
+      - "Too easy at 15 → increase weight next session"
+      - "Cannot reach 13 cleanly → reduce weight"
+      - "Abs every day including rest days — 12 min non-negotiable"
+
+  rest_times:
+    compound_legs: "60 seconds (form matters most here)"
+    compound_upper: "45–60 seconds"
+    isolation: "30 seconds — push the pace"
+    core: "20–30 seconds"
+    home_dumbbell: "30 seconds (higher reps for lighter weight)"
+
+  sets_and_reps:
+    compound_legs: "3 sets × 12–15 reps"
+    compound_upper: "2–3 sets × 12–15 reps"
+    isolation: "2 sets × 15 reps"
+    core: "2–3 sets × 15 reps or timed"
+    home_dumbbell: "2 sets × 15–20 reps"
+
+  workouts:
+    A:
+      name: Full Body A
+      estimated_min: 65
+      supersets:
+        SS1: "Leg Press (3×15) ↔ Incline Bench Press (3×15) — rest 60s"
+        SS2: "Romanian Deadlift (3×12) ↔ Wide Lat Pulldown (3×12) — rest 60s"
+        SS3: "Pull-ups 30kg assist (2×12) ↔ DB Shoulder Press (2×12) — rest 45s"
+        SS4: "Cable Crossover (2×15) ↔ DB Sit-up (2×15) — rest 45s"
+        OPT: "Bicep Curl bar (2×15) ↔ Triceps Rope Pressdown (2×15) — rest 30s"
+    B:
+      name: Full Body B
+      estimated_min: 60
+      supersets:
+        SS1: "Goblet Squat (3×15) ↔ Bench Press flat (3×15) — rest 60s"
+        SS2: "Seated Leg Curl (3×15) ↔ 2-Arm DB Row (3×15) — rest 60s"
+        SS3: "Machine Shoulder Press (2×12) ↔ Lateral Raise (2×12) — rest 45s"
+        SS4: "Bent Over Lateral Raise (2×15) ↔ Wide Lat Pulldown (2×15) — rest 45s"
+        OPT: "Seated DB Curl (2×15) ↔ DB Kickback (2×15) — rest 30s"
+    C:
+      name: Full Body C
+      estimated_min: 65
+      supersets:
+        SS1: "Leg Press (4×15) ↔ DB Bench Press (4×15) — rest 60s"
+        SS2: "Romanian Deadlift (3×12) ↔ Pull-ups 30kg assist (3×12) — rest 60s"
+        SS3: "Leg Extension (2×15) ↔ Wide Lat Pulldown (2×15) — rest 45s"
+        SS4: "Machine Shoulder Press (2×12) ↔ Cable Crossover (2×12) — rest 45s"
+        OPT: "Barbell Curl (2×12) ↔ Lying Tricep Extension (2×12) — rest 30s"
+    Home:
+      name: Home Dumbbell (7kg each)
+      estimated_min: 35
+      format: "Circuit. 2 sets × 15-20 reps. 30s rest between exercises."
+      supersets:
+        SS1: "Goblet Squat both DBs ↔ Floor Chest Press"
+        SS2: "Romanian Deadlift DBs ↔ 2-Arm DB Row"
+        SS3: "Lateral Raise ↔ Bent Over Lateral Raise"
+        SS4: "Seated DB Curl ↔ DB Kickback"
+        FIN: "Reverse Lunge DBs × 12/leg"
+    Abs:
+      name: Daily Abs (12 min, every day)
+      exercises:
+        - "Dead Bug — 2×10/side — 30s rest — spine stabilisation"
+        - "Bird Dog — 2×10/side — 30s rest — spine stabilisation"
+        - "Forearm Plank — 2×30s (→45s M2, →60s M3+)"
+        - "Reverse Crunch — 2×15 — curl tailbone up"
+        - "Bicycle Crunch — 2×15 SLOW — 2s each direction"
+      never_do:
+        - "Full sit-ups (feet anchored) — lumbar disc compression"
+        - "Weighted Russian twists — disc injury risk at 42"
+        - "Straight-leg raises lying — excessive lumbar arch"
+
+  schedule:
+    standard_week:
+      Monday: "Abs only (travel Trivandrum→Coimbatore)"
+      Tuesday: "Abs AM + Full Body A (gym after 6 PM)"
+      Wednesday: "Abs AM + Full Body B (gym after 6 PM)"
+      Thursday: "Abs AM + Full Body C (gym after 6 PM)"
+      Friday: "Abs + optional home dumbbell (travel back)"
+      Saturday: "Abs + Home Dumbbell if family time allows"
+      Sunday: "Abs + rest or light home"
+    heavy_week:
+      Monday: "Abs AM + Full Body A (gym after 6 PM, stays in Coimbatore)"
+      Tuesday: "Abs AM + Full Body B"
+      Wednesday: "Abs AM + Full Body C"
+      Thursday: "Abs AM + Full Body A (repeat)"
+      Friday: "Abs + optional home"
+      Saturday: "Abs + Home Dumbbell"
+      Sunday: "Abs or full rest"
+
+  diet_coimbatore:
+    total_kcal: ~1490
+    protein_g: ~105
+    meals:
+      on_waking: "2 glasses warm water + lemon"
+      breakfast: "2 whole eggs + 35g oats + ½ tsp cinnamon + 5 walnuts — 370 kcal / 20g protein"
+      tea_rule: "Wait 90 min before tea — tea blocks 60% iron absorption"
+      snack: "20g mixed nuts + 1 fruit — 200 kcal"
+      lunch: "Small rice + dal + vegetables + curd + LEMON on dal (doubles iron absorption)"
+      afternoon: "2 egg whites + 1 apple — 110 kcal"
+      pre_gym: "1 apple"
+      post_gym: "1 banana + 1 boiled egg — critical recovery window (currently missing)"
+      dinner: "180g air-fried chicken + 100g sweet potato + large salad — 400 kcal / 50g protein"
+
+  diet_trivandrum:
+    principles:
+      - "Max 2 appam (not 3-4) — always with protein (2 eggs or chicken)"
+      - "Red/boiled rice preferred — ¾ cup cooked"
+      - "Fish 3-4×/week: mackerel (Ayala) or sardines (Mathi) — best meal"
+      - "Lemon on sambar at lunch — iron absorption"
+      - "Dinner before 8 PM"
+      - "Post-meal 15-min walk after both lunch and dinner — single most effective HbA1c tool"
+    avoid:
+      - "Fish fry daily (curry preferred)"
+      - "Parotta (maida)"
+      - "Payasam / sweets"
+      - "Late dinner after 8:30 PM"
+
+  supplements:
+    vitamin_d3: "Doctor's loading course — continue"
+    iron: "Test first (ferritin, serum iron, TIBC) before supplementing"
+    omega3: "1000mg EPA+DHA with lunch — on non-fish days"
+    magnesium_glycinate: "300mg at bedtime — sleep + recovery"
+    psyllium_husk: "1 tsp in 250ml water at bedtime — LDL + gut health"
+
+# ------------------------------------------------------------
+# CURRENT STATE & KNOWN ISSUES
+# ------------------------------------------------------------
+current_state:
+  status: "MVP complete. Working. No bugs known at commit time."
+  tested: "Local Python HTTP server — all files serve correctly"
+  not_yet_tested: "Browser end-to-end (requires live CDN access for sql.js WASM)"
+
+known_limitations:
+  - "Workout config changes in Settings update WORKOUTS in-memory + localStorage override, but session reload re-reads this override. Works across sessions."
+  - "localStorage limit ~5MB. With daily gym logs, this is ~10+ years of data before hitting limit."
+  - "sql.js WASM requires HTTP server — does NOT work via file:// protocol directly"
+
+# ------------------------------------------------------------
+# PLANNED FEATURES (not yet built)
+# ------------------------------------------------------------
+roadmap:
+  near_term:
+    - "Weight progression chart per exercise (uses set_logs.weight_kg over time)"
+    - "Dark theme (CSS variables already structured for it — just add @media prefers-color-scheme)"
+    - "Offline PWA via Service Worker + manifest.json"
+    - "Body weight trend chart on Progress page (body_metrics table already populated)"
+
+  medium_term:
+    - "Volume progression: total sets × weight per session over time"
+    - "Muscle group balance chart: how much push vs pull vs legs"
+    - "Rest time compliance: logged rest vs planned rest comparison"
+    - "Diet streak: consecutive days with full checklist completion"
+
+  future:
+    - "iCalendar export of workout schedule"
+    - "WhatsApp/share integration for progress screenshots"
+    - "Multiple user profiles (for when family wants to use same device)"
+
+# ------------------------------------------------------------
+# HOW TO CONTINUE DEVELOPMENT
+# ------------------------------------------------------------
+development:
+  local_testing:
+    command: "python -m http.server 8899"
+    url: "http://localhost:8899"
+    note: "Must use HTTP server, not file:// — sql.js WASM requires it"
+
+  deploy_to_github_pages:
+    steps:
+      1: "Create repo on github.com (e.g. 'gymlog')"
+      2: "git remote add origin https://github.com/YOUR_USERNAME/gymlog.git"
+      3: "git branch -M main"
+      4: "git push -u origin main"
+      5: "GitHub repo → Settings → Pages → Source: Deploy from branch → main → / (root) → Save"
+      6: "Wait ~1 min → live at https://YOUR_USERNAME.github.io/gymlog/"
+    update_workflow:
+      - "Edit files locally"
+      - "git add -A && git commit -m 'description'"
+      - "git push"
+      - "GitHub Pages auto-redeploys in ~30 seconds"
+
+  session_startup_prompt: >
+    "I'm continuing development of GymLog, a browser-based gym tracker
+     at F:/gym. Read CONTEXT.yaml for full project context. Then [describe
+     what you want to add/fix]."
