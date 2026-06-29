@@ -145,19 +145,19 @@ const ProgressView = (() => {
       <div class="charts-section">
         <div class="chart-card">
           <div class="chart-title">Weekly Sessions</div>
-          <canvas id="chart-weekly" height="160"></canvas>
+          <div class="chart-canvas-wrap"><canvas id="chart-weekly"></canvas></div>
         </div>
         <div class="chart-card">
           <div class="chart-title">Session Duration (min)</div>
-          <canvas id="chart-duration" height="160"></canvas>
+          <div class="chart-canvas-wrap"><canvas id="chart-duration"></canvas></div>
         </div>
         <div class="chart-card chart-card-half">
           <div class="chart-title">Workout Mix</div>
-          <canvas id="chart-mix" height="180"></canvas>
+          <div class="chart-canvas-wrap chart-canvas-wrap-tall"><canvas id="chart-mix"></canvas></div>
         </div>
         <div class="chart-card chart-card-half">
           <div class="chart-title">Time of Day</div>
-          <canvas id="chart-time" height="180"></canvas>
+          <div class="chart-canvas-wrap chart-canvas-wrap-tall"><canvas id="chart-time"></canvas></div>
         </div>
       </div>
     `;
@@ -172,6 +172,7 @@ const ProgressView = (() => {
     const chartDefaults = {
       responsive: true,
       maintainAspectRatio: false,
+      animation: false,
       plugins: { legend: { display: false } },
       scales: {
         x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 }, color: '#888' } },
@@ -186,8 +187,9 @@ const ProgressView = (() => {
         type: 'bar',
         data: {
           labels: weeklyData.map(w => {
-            const [year, week] = w.week.split('-W');
-            return `Wk ${week}`;
+            if (!w.week) return '?';
+            const parts = w.week.split('-W');
+            return 'Wk ' + (parts[1] || parts[0]);
           }),
           datasets: [{
             data: weeklyData.map(w => w.sessions),

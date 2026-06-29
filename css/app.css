@@ -936,6 +936,149 @@ button { cursor: pointer; }
 .text-muted { color: var(--text-3); }
 
 /* =========================================
+   Chart canvas wrapper — fixes responsive resize loop
+   ========================================= */
+.chart-canvas-wrap {
+  position: relative;
+  height: 160px;
+}
+
+.chart-canvas-wrap-tall {
+  height: 180px;
+}
+
+/* =========================================
+   Exercise tips overlay
+   ========================================= */
+.ex-tips-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 300;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 1rem;
+}
+
+.ex-tips-card {
+  background: var(--bg);
+  border-radius: 4px;
+  width: 100%; max-width: 480px;
+  padding: 1.25rem;
+  display: flex; flex-direction: column; gap: 0.75rem;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+  animation: slideUp 0.2s ease;
+}
+
+.ex-tips-header {
+  display: flex; align-items: center; gap: 0.5rem;
+}
+
+.ex-tips-emoji { font-size: 1.25rem; line-height: 1; }
+
+.ex-tips-name {
+  flex: 1;
+  font-size: 1rem; font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.ex-tips-close {
+  background: var(--bg-3); border: none;
+  width: 28px; height: 28px; border-radius: 50%;
+  font-size: 1rem; color: var(--text-2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.ex-tips-close:hover { background: var(--border); }
+
+.ex-tips-cue {
+  font-size: 0.875rem; line-height: 1.6;
+  color: var(--text-2);
+  border-left: 3px solid var(--accent);
+  padding-left: 0.75rem;
+  margin: 0;
+}
+
+.ex-tips-yt {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  color: var(--danger);
+  font-size: 0.8125rem; font-weight: 600;
+  text-decoration: none;
+}
+
+.ex-tips-yt:hover { text-decoration: underline; }
+
+/* Exercise tips button in SS header */
+.ex-col-label {
+  display: flex; align-items: center; gap: 4px;
+}
+
+.ex-col-label-text {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex: 1; min-width: 0;
+}
+
+.ex-tip-btn {
+  background: none; border: none;
+  font-size: 0.625rem; color: var(--text-3);
+  padding: 0; line-height: 1;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.ex-tip-btn:hover { color: var(--info); }
+
+/* =========================================
+   Diet checklist config (Settings)
+   ========================================= */
+.cl-pane { padding: 0.75rem 1rem; }
+
+.checklist-editor { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.cl-items-list { display: flex; flex-direction: column; gap: 0.375rem; }
+
+.cl-item-row {
+  display: flex; align-items: center; gap: 0.5rem;
+}
+
+.cl-item-num {
+  font-size: 0.75rem; color: var(--text-3);
+  width: 20px; flex-shrink: 0; text-align: right;
+}
+
+.cl-item-input { flex: 1; height: 34px; }
+
+.cl-item-del {
+  background: none; border: 1px solid var(--border);
+  width: 28px; height: 28px; border-radius: var(--r);
+  color: var(--text-3); font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.cl-item-del:hover { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+
+.cl-add-btn {
+  background: none; border: 1px dashed var(--border-2);
+  border-radius: var(--r);
+  height: 34px; padding: 0 0.75rem;
+  font-size: 0.8125rem; color: var(--text-2);
+  text-align: left; width: 100%;
+}
+
+.cl-add-btn:hover { background: var(--bg-3); border-color: var(--accent); color: var(--accent); }
+
+.cl-actions {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding-top: 0.25rem;
+}
+
+.cl-reset-btn {
+  font-size: 0.8125rem; color: var(--text-3);
+}
+
+/* =========================================
    Responsive — Desktop
    ========================================= */
 @media (min-width: 768px) {

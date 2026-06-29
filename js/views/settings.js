@@ -10,6 +10,7 @@ const SettingsView = (() => {
         ${_renderProfile()}
         ${_renderWeekSchedule()}
         ${_renderWorkoutConfig()}
+        ${_renderDietConfig()}
         ${_renderDangerZone()}
       </div>
     `;
@@ -203,6 +204,51 @@ const SettingsView = (() => {
     `;
   }
 
+  function _renderDietConfig() {
+    var cbItems = getActiveDietChecklist('coimbatore');
+    var tvItems = getActiveDietChecklist('trivandrum');
+    return `
+      <div class="settings-section">
+        <div class="settings-section-title">Daily Checklist</div>
+        <p class="settings-note">Edit, reorder, add or remove items for each location. Changes apply immediately after saving.</p>
+        <div class="schedule-tabs">
+          <button class="sched-tab sched-tab-active" data-cl-tab="coimbatore">Coimbatore</button>
+          <button class="sched-tab" data-cl-tab="trivandrum">Trivandrum</button>
+        </div>
+        <div class="cl-pane" id="cl-pane-coimbatore">
+          ${_renderChecklistEditor('coimbatore', cbItems)}
+        </div>
+        <div class="cl-pane hidden" id="cl-pane-trivandrum">
+          ${_renderChecklistEditor('trivandrum', tvItems)}
+        </div>
+      </div>
+    `;
+  }
+
+  function _renderChecklistEditor(location, items) {
+    return `
+      <div class="checklist-editor">
+        <div class="cl-items-list" id="cl-items-${location}">
+          ${items.map((item, idx) => `
+            <div class="cl-item-row">
+              <span class="cl-item-num">${idx + 1}</span>
+              <input class="field-input cl-item-input" type="text"
+                     value="${item.label.replace(/"/g, '&quot;')}"
+                     data-id="${item.id}" data-location="${location}">
+              <button class="cl-item-del" title="Remove item">×</button>
+            </div>
+          `).join('')}
+        </div>
+        <button class="cl-add-btn" data-location="${location}">+ Add item</button>
+        <div class="cl-actions">
+          <button class="btn-save btn-save-sm" data-save-checklist="${location}">Save checklist</button>
+          <button class="btn-link cl-reset-btn" data-reset-checklist="${location}">Reset to defaults</button>
+          <div class="save-confirm hidden" id="clsaved-${location}">✓ Saved</div>
+        </div>
+      </div>
+    `;
+  }
+
   function _renderDangerZone() {
     return `
       <div class="settings-section danger-zone">
@@ -298,6 +344,70 @@ const SettingsView = (() => {
         // Persist to settings as JSON
         DB.setSetting('workout_override_' + key, JSON.stringify(workout.supersets));
         _flash('wsaved-' + key);
+      });
+    });
+
+    // Diet checklist tabs
+    document.querySelectorAll('[data-cl-tab]').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('[data-cl-tab]').forEach(t => t.classList.remove('sched-tab-active'));
+        tab.classList.add('sched-tab-active');
+        document.querySelectorAll('.cl-pane').forEach(p => p.classList.add('hidden'));
+        document.getElementById('cl-pane-' + tab.dataset.clTab)?.classList.remove('hidden');
+      });
+    });
+
+    // Diet checklist — delete item buttons (delegated via initial render)
+    document.querySelectorAll('.cl-item-del').forEach(btn => {
+      btn.addEventListener('click', () => btn.closest('.cl-item-row').remove());
+    });
+
+    // Diet checklist — add item
+    document.querySelectorAll('.cl-add-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        var location = btn.dataset.location;
+        var container = document.getElementById('cl-items-' + location);
+        var idx = container.querySelectorAll('.cl-item-row').length + 1;
+        var newId = 'custom_' + Date.now();
+        var div = document.createElement('div');
+        div.className = 'cl-item-row';
+        div.innerHTML = `
+          <span class="cl-item-num">${idx}</span>
+          <input class="field-input cl-item-input" type="text" value=""
+                 data-id="${newId}" data-location="${location}" placeholder="New checklist item…">
+          <button class="cl-item-del" title="Remove item">×</button>
+        `;
+        container.appendChild(div);
+        div.querySelector('input').focus();
+        div.querySelector('.cl-item-del').addEventListener('click', () => div.remove());
+      });
+    });
+
+    // Diet checklist — save
+    document.querySelectorAll('[data-save-checklist]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        var location = btn.dataset.saveChecklist;
+        var pane = document.getElementById('cl-pane-' + location);
+        var items = [];
+        pane.querySelectorAll('.cl-item-row').forEach(row => {
+          var input = row.querySelector('.cl-item-input');
+          var label = input ? input.value.trim() : '';
+          var id = input ? (input.dataset.id || ('item_' + Date.now())) : ('item_' + Date.now());
+          if (label) items.push({ id: id, label: label });
+        });
+        DB.setSetting('diet_checklist_' + location, JSON.stringify(items));
+        _flash('clsaved-' + location);
+      });
+    });
+
+    // Diet checklist — reset to defaults
+    document.querySelectorAll('[data-reset-checklist]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        var location = btn.dataset.resetChecklist;
+        if (confirm('Reset ' + location + ' checklist to defaults? Your custom items will be lost.')) {
+          DB.setSetting('diet_checklist_' + location, '');
+          render();
+        }
       });
     });
 

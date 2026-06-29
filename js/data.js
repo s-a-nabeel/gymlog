@@ -50,7 +50,7 @@ const WORKOUTS = {
     location: 'gym',
     estimatedMin: 65,
     supersets: [
-      { id: 'SS1', label: 'SS1', sets: 4, reps: '15', rest: 60, optional: false,
+      { id: 'SS1', label: 'SS1', sets: 3, reps: '15', rest: 60, optional: false,
         exA: { name: 'Leg Press', category: 'compound_legs', primary: true },
         exB: { name: 'Dumbbell Bench Press', category: 'compound_upper' } },
       { id: 'SS2', label: 'SS2', sets: 3, reps: '12', rest: 60, optional: false,
@@ -129,6 +129,19 @@ const OPENING_BLOCK = [
   { name: 'Push-ups', detail: 'Bodyweight × 15 reps', duration: '2 min' },
 ];
 
+// Returns the active checklist — custom override from DB, or hardcoded default.
+// Called after DB.init() so DB is always available here.
+function getActiveDietChecklist(location) {
+  try {
+    var raw = DB.getSetting('diet_checklist_' + location);
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return DIET_CHECKLISTS[location] || DIET_CHECKLISTS.coimbatore;
+}
+
 const DIET_CHECKLISTS = {
   coimbatore: [
     { id: 'wake_water', label: '2 glasses warm water + lemon on waking' },
@@ -155,4 +168,43 @@ const DIET_CHECKLISTS = {
     { id: 'fish_week', label: 'Fish 3-4× this week (mackerel/sardines)' },
     { id: 'dumbbell', label: 'Light dumbbell session (when family time allows)' },
   ]
+};
+
+// Form cues shown in the exercise tips modal.
+const EXERCISE_TIPS = {
+  'Leg Press':                  { emoji: '🦵', cue: 'Feet shoulder-width on plate. Lower until knees at 90°. Don\'t lock out at top. Back flat against pad throughout.' },
+  'Incline Bench Press':        { emoji: '💪', cue: 'Bench at 30–45°. Lower bar to upper chest. Elbows at ~45° to body. Full ROM but stop before shoulder impingement.' },
+  'Romanian Deadlift':          { emoji: '🏋️', cue: 'Hinge at hips — not the spine. Bar/DBs stay close to legs. Stop the moment you feel the hamstring stretch peak. Back stays neutral.' },
+  'Wide Lat Pulldown':          { emoji: '💪', cue: 'Pull bar to upper chest (not behind neck). Lean back slightly. Drive elbows down and back. Squeeze shoulder blades at bottom. Slow release.' },
+  'Pull-ups (30kg assist)':     { emoji: '💪', cue: 'Start from a dead hang. Pull chest to bar. Drive elbows down to sides. No kipping. Take 2–3 seconds on the way down.' },
+  'Dumbbell Shoulder Press':    { emoji: '💪', cue: 'Start DBs at ear level. Press overhead without arching lower back. Elbows slightly in front of the body plane, not flared out.' },
+  'Cable Crossover':            { emoji: '💪', cue: 'Arms slightly bent. Arc hands toward each other at chest height — "hug a tree." Slow 3-second negative. Squeeze chest at the centre.' },
+  'Dumbbell Sit-up':            { emoji: '🧘', cue: 'Hold DB at chest. Curl the spine up — don\'t yank the neck. Lower under full control. Core stays braced throughout.' },
+  'Bicep Curl (bar)':           { emoji: '💪', cue: 'Elbows pinned to sides — don\'t let them drift forward. Full extension at bottom. Supinate at the top. No swinging. 3-second negative.' },
+  'Triceps Rope Pressdown':     { emoji: '💪', cue: 'Elbows at sides, don\'t flare. Press to full extension. Flare the rope handles apart at the bottom. Slow controlled return.' },
+  'Goblet Squat':               { emoji: '🦵', cue: 'Hold DB at chest. Feet shoulder-width, toes out ~30°. Squat deep — elbows push knees out at bottom. Chest up. Drive through heels.' },
+  'Bench Press (flat)':         { emoji: '💪', cue: 'Bar over lower chest. Elbows at 45–75° (not 90°). Touch chest lightly — no bounce. Full extension at top without locking.' },
+  'Seated Leg Curl':            { emoji: '🦵', cue: 'Ankle pad on lower shin. Curl heel toward glutes. Hold 1 second at peak contraction. Slow, controlled release — 3 seconds back up.' },
+  '2-Arm Dumbbell Row':         { emoji: '💪', cue: 'Plant one knee and hand on bench. Pull elbow straight back — DB grazes torso. Squeeze the lat at the top. Chest stays parallel to floor.' },
+  'Machine Shoulder Press':     { emoji: '💪', cue: 'Adjust seat so handles are at shoulder level. Press overhead without fully locking elbows. Control the descent — 2–3 seconds.' },
+  'Lateral Raise':              { emoji: '💪', cue: 'Slight bend at elbows. Lead with the elbows, not the wrists. Stop at shoulder height. Slow negative — 3 seconds down. No shrugging.' },
+  'Bent Over Lateral Raise':    { emoji: '💪', cue: 'Hinge forward ~45°. Arms hang naturally. Raise to shoulder height. Thumbs slightly down. Pinch shoulder blades at the top.' },
+  'Seated Dumbbell Curl':       { emoji: '💪', cue: 'Sit on bench edge, back straight. Supinate as you curl. Full ROM. Keep elbows slightly in front. No shoulder rocking.' },
+  'Dumbbell Kickback':          { emoji: '💪', cue: 'Hinge forward. Upper arm stays parallel to floor. Extend elbow fully and squeeze tricep at lockout. Don\'t drop the arm on the return.' },
+  'Dumbbell Bench Press':       { emoji: '💪', cue: 'DBs start at chest level, elbows ~70°. Press and slightly rotate/pinch inward at the top. Good range of motion — lower past parallel if comfortable.' },
+  'Leg Extension':              { emoji: '🦵', cue: 'Ankle pad on lower shin. Extend to full lockout — hold 1 second. 3-second slow negative. Don\'t swing or use momentum.' },
+  'Barbell Curl':               { emoji: '💪', cue: 'Shoulder-width grip. Elbows pinned back. Curl bar to chin level. Squeeze at top. 3-second negative.' },
+  'Lying Tricep Extension':     { emoji: '💪', cue: 'Lie on bench. Bar/EZ-bar above nose. Bend elbows — only the forearms move. Elbows stay in, don\'t flare. Extend and squeeze hard.' },
+  'Goblet Squat (both DBs)':    { emoji: '🦵', cue: 'Hold both DBs at chest. Same cues as goblet squat. Squat deep, elbows push knees out. Drive through heels to stand.' },
+  'Floor Chest Press':          { emoji: '💪', cue: 'Lie on floor, knees bent. DBs at chest. Press up. ROM is limited by the floor — that\'s OK, safer for shoulders. Squeeze chest at top.' },
+  'Romanian Deadlift (DBs)':    { emoji: '🦵', cue: 'Hinge at hips, DBs close to legs. Feel the hamstring stretch. Stop when your back starts to round. Squeeze glutes standing back up.' },
+  'Reverse Lunge (DBs)':        { emoji: '🦵', cue: 'Step directly backward. Lower rear knee toward floor. Front knee stays over ankle — NOT past toes. Push through the front heel to return.' },
+  'Dead Bug':                   { emoji: '🧘', cue: 'Lie on back, arms straight up, knees at 90°. Lower opposite arm + leg toward floor. KEY: lower back must stay pressed to floor throughout. Small movement.' },
+  'Bird Dog':                   { emoji: '🧘', cue: 'On hands and knees. Extend opposite arm and leg until level. Hips stay square — don\'t rotate or let back arch. Hold 2 seconds. Repeat.' },
+  'Forearm Plank':              { emoji: '🧘', cue: 'Elbows under shoulders. Body forms a straight line — head to heel. Brace like someone is about to punch your stomach. Breathe steadily.' },
+  'Reverse Crunch':             { emoji: '🧘', cue: 'Lie on back, knees bent. Curl tailbone UP off the floor — it\'s a small, controlled pelvic curl. Lower slowly. No neck strain. Not a leg raise.' },
+  'Bicycle Crunch':             { emoji: '🧘', cue: '2 FULL seconds each side. Rotate from the thoracic spine, not the neck. Opposite elbow toward opposite knee. Slow is the entire point.' },
+  'HIIT Cycling':               { emoji: '🚴', cue: '30s all-out sprint (90–100% effort). 30s easy recovery. 10 rounds total. Keep good posture on the bike — don\'t hunch. Heart rate stays elevated.' },
+  'Dynamic Warm-up':            { emoji: '🤸', cue: 'Arm circles (both directions), hip circles, side-to-side leg swings, forward leg swings. Full controlled range of motion — not ballistic.' },
+  'Push-ups':                   { emoji: '💪', cue: 'Hands just outside shoulder-width. Body in a straight plank. Lower chest to floor. Full extension at top. No sagging hips or raised butt.' },
 };

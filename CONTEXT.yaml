@@ -15,7 +15,7 @@ project:
     A personal gym and diet tracking Progressive Web App for Nabeel S.A.
     No backend. SQLite runs in the browser via sql.js (WASM). All data
     persists in localStorage. Deployed as static files on GitHub Pages.
-  repo_url: "[ADD YOUR GITHUB PAGES URL HERE after first push]"
+  repo_url: "https://github.com/s-a-nabeel/gymlog/"
   working_dir: "F:/gym"
   last_updated: "2026-06-28"
 

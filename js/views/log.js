@@ -55,6 +55,7 @@ const LogView = (() => {
         ${_renderDietSection()}
       </div>
       <div id="rest-overlay" class="rest-overlay hidden"></div>
+      <div id="ex-tips-overlay" class="ex-tips-overlay hidden"></div>
     `;
 
     document.getElementById('main-content').innerHTML = html;
@@ -136,7 +137,10 @@ const LogView = (() => {
         <div class="block-title">Opening Block</div>
         ${OPENING_BLOCK.map(item => `
           <div class="opening-item">
-            <span class="opening-name">${item.name}</span>
+            <span class="opening-name">
+              ${item.name}
+              <button class="ex-tip-btn" data-ex="${item.name.replace(/"/g, '&quot;')}" title="Form tips">ⓘ</button>
+            </span>
             <span class="opening-detail">${item.detail}</span>
             <span class="opening-dur">${item.duration}</span>
           </div>
@@ -183,12 +187,18 @@ const LogView = (() => {
   }
 
   function _renderSSHeader(ss) {
+    function exLabel(name) {
+      return `<span class="ex-col-label">
+        <span class="ex-col-label-text">${name}</span>
+        <button class="ex-tip-btn" data-ex="${name.replace(/"/g, '&quot;')}" title="Form tips">ⓘ</button>
+      </span>`;
+    }
     return `
       <div class="set-row set-row-header">
         <span class="set-num-col"></span>
         <div class="ex-cols">
-          <span class="ex-col-label">${ss.exA.name}</span>
-          ${ss.exB ? `<span class="ex-col-label">${ss.exB.name}</span>` : ''}
+          ${exLabel(ss.exA.name)}
+          ${ss.exB ? exLabel(ss.exB.name) : ''}
         </div>
       </div>
     `;
@@ -277,7 +287,7 @@ const LogView = (() => {
 
   function _renderDietSection() {
     const location = DB.getSetting('location') || 'coimbatore';
-    const items = DIET_CHECKLISTS[location] || DIET_CHECKLISTS.coimbatore;
+    const items = getActiveDietChecklist(location);
     const dietLogs = DB.getDietLog(activeDate);
     const doneMap = {};
     dietLogs.forEach(d => { doneMap[d.item_id] = !!d.completed; });
@@ -484,6 +494,14 @@ const LogView = (() => {
       btn.addEventListener('click', () => _handleTick(btn));
     });
 
+    // Exercise tips buttons
+    document.querySelectorAll('.ex-tip-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        _showExerciseTips(btn.dataset.ex);
+      });
+    });
+
     // Weight inputs — update cache
     document.querySelectorAll('.weight-input').forEach(inp => {
       inp.addEventListener('change', e => {
@@ -629,6 +647,7 @@ const LogView = (() => {
         if (r === setRow) { foundCurrent = true; return; }
         if (foundCurrent && !r.classList.contains('set-done')) {
           r.classList.add('set-next');
+          r.classList.remove('set-locked'); // unlock so tick buttons are interactive
           r.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           foundCurrent = false; // only first next
         }
@@ -656,6 +675,34 @@ const LogView = (() => {
       );
       siblingBtn?.closest('.ex-cell')?.querySelector('.weight-input')?.focus();
     }
+  }
+
+  function _showExerciseTips(exName) {
+    const tips = EXERCISE_TIPS[exName];
+    const overlay = document.getElementById('ex-tips-overlay');
+    if (!overlay) return;
+
+    const ytUrl = 'https://www.youtube.com/results?search_query=' +
+      encodeURIComponent(exName + ' exercise form tutorial');
+
+    overlay.innerHTML = `
+      <div class="ex-tips-card">
+        <div class="ex-tips-header">
+          <span class="ex-tips-emoji">${tips ? tips.emoji : '💪'}</span>
+          <span class="ex-tips-name">${exName}</span>
+          <button class="ex-tips-close" id="ex-tips-close">×</button>
+        </div>
+        <p class="ex-tips-cue">${tips ? tips.cue : 'Focus on controlled movement and full range of motion.'}</p>
+        <a class="ex-tips-yt" href="${ytUrl}" target="_blank" rel="noopener">▶ Search YouTube for demo</a>
+      </div>
+    `;
+    overlay.classList.remove('hidden');
+    document.getElementById('ex-tips-close')?.addEventListener('click', () => {
+      overlay.classList.add('hidden');
+    });
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.classList.add('hidden');
+    }, { once: true });
   }
 
   function cleanup() {
