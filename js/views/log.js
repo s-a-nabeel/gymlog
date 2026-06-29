@@ -6,6 +6,9 @@ const LogView = (() => {
   let sessionTimerInterval = null;
   let sessionStartTime = null;
   let restTimerInterval = null;
+  let restStartTime = null;   // timestamp when rest began
+  let restDuration = 0;       // total rest seconds
+  let restNextHint = '';
   let completedKeys = new Set(); // "ssId_pos_setNum"
   let weightCache = {};          // "exerciseName" -> kg
   let sessionSetsCache = [];     // cached set_logs for current session
@@ -366,6 +369,13 @@ const LogView = (() => {
     return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
   }
 
+  // Fires when tab/screen becomes visible again — refreshes both timers immediately.
+  function _onVisibilityChange() {
+    if (document.hidden) return;
+    if (sessionStartTime) _startSessionTimer();
+    if (restStartTime) _tickRestTimer();
+  }
+
   // Session timer
   function _startSessionTimer() {
     if (sessionTimerInterval) clearInterval(sessionTimerInterval);
@@ -382,51 +392,61 @@ const LogView = (() => {
 
     update();
     sessionTimerInterval = setInterval(update, 1000);
+    // Register once — duplicate listeners are silently ignored by the browser.
+    document.addEventListener('visibilitychange', _onVisibilityChange);
   }
 
   function _stopSessionTimer() {
     if (sessionTimerInterval) { clearInterval(sessionTimerInterval); sessionTimerInterval = null; }
+    document.removeEventListener('visibilitychange', _onVisibilityChange);
   }
 
-  // Rest timer overlay
+  // Rest timer overlay — timestamp-based so backgrounding doesn't desync it.
   function _showRestTimer(seconds, nextHint) {
     if (restTimerInterval) clearInterval(restTimerInterval);
-    let remaining = seconds;
+    restStartTime = Date.now();
+    restDuration = seconds;
+    restNextHint = nextHint || '';
 
     const overlay = document.getElementById('rest-overlay');
     if (!overlay) return;
+    overlay.classList.remove('hidden');
+    _tickRestTimer();
+    restTimerInterval = setInterval(_tickRestTimer, 500);
+  }
 
-    function renderOverlay() {
-      const pct = ((seconds - remaining) / seconds) * 100;
-      overlay.innerHTML = `
-        <div class="rest-card">
-          <div class="rest-label">Rest</div>
-          <div class="rest-countdown">${remaining}s</div>
-          <div class="rest-bar-track">
-            <div class="rest-bar-fill" style="width:${pct}%"></div>
-          </div>
-          ${nextHint ? `<div class="rest-next">Next: ${nextHint}</div>` : ''}
-          <button class="btn-skip-rest" id="btn-skip-rest">Skip rest</button>
-        </div>
-      `;
-      document.getElementById('btn-skip-rest')?.addEventListener('click', _hideRestTimer);
+  function _tickRestTimer() {
+    const overlay = document.getElementById('rest-overlay');
+    if (!overlay || overlay.classList.contains('hidden')) {
+      _hideRestTimer();
+      return;
+    }
+    const elapsed = (Date.now() - restStartTime) / 1000;
+    const remaining = Math.max(0, Math.ceil(restDuration - elapsed));
+    const pct = Math.min(100, (elapsed / restDuration) * 100);
+
+    if (remaining <= 0) {
+      _hideRestTimer();
+      return;
     }
 
-    overlay.classList.remove('hidden');
-    renderOverlay();
-
-    restTimerInterval = setInterval(() => {
-      remaining--;
-      if (remaining <= 0) {
-        _hideRestTimer();
-        return;
-      }
-      renderOverlay();
-    }, 1000);
+    overlay.innerHTML = `
+      <div class="rest-card">
+        <div class="rest-label">Rest</div>
+        <div class="rest-countdown">${remaining}s</div>
+        <div class="rest-bar-track">
+          <div class="rest-bar-fill" style="width:${pct}%"></div>
+        </div>
+        ${restNextHint ? `<div class="rest-next">Next: ${restNextHint}</div>` : ''}
+        <button class="btn-skip-rest" id="btn-skip-rest">Skip rest</button>
+      </div>
+    `;
+    document.getElementById('btn-skip-rest')?.addEventListener('click', _hideRestTimer);
   }
 
   function _hideRestTimer() {
     if (restTimerInterval) { clearInterval(restTimerInterval); restTimerInterval = null; }
+    restStartTime = null;
     const overlay = document.getElementById('rest-overlay');
     if (overlay) overlay.classList.add('hidden');
   }
@@ -706,8 +726,8 @@ const LogView = (() => {
   }
 
   function cleanup() {
-    _stopSessionTimer();
-    if (restTimerInterval) { clearInterval(restTimerInterval); restTimerInterval = null; }
+    _stopSessionTimer(); // also removes visibilitychange listener
+    _hideRestTimer();
   }
 
   return { render, cleanup };
