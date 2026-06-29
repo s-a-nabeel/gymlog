@@ -255,6 +255,13 @@ const SettingsView = (() => {
         <div class="settings-section-title">Data</div>
         <div class="danger-row">
           <div>
+            <strong>Reload app</strong>
+            <p class="settings-note">Force a fresh reload — picks up latest code changes. Use this on Safari/iPhone instead of hard-refresh.</p>
+          </div>
+          <button class="btn-export" id="btn-force-reload">Reload</button>
+        </div>
+        <div class="danger-row">
+          <div>
             <strong>Export all data</strong>
             <p class="settings-note">Download a CSV backup of all your sessions and sets.</p>
           </div>
@@ -409,6 +416,13 @@ const SettingsView = (() => {
           render();
         }
       });
+    });
+
+    // Force reload (cache-busting for Safari)
+    document.getElementById('btn-force-reload')?.addEventListener('click', () => {
+      var base = location.pathname + location.search.replace(/[?&]v=\d+/, '');
+      var sep = base.includes('?') ? '&' : '?';
+      location.replace(base + sep + 'v=' + Date.now());
     });
 
     // Export
