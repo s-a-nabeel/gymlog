@@ -727,6 +727,17 @@ button { cursor: pointer; }
 .session-dur { font-size: 0.75rem; color: var(--text-2); }
 .session-sets { font-size: 0.75rem; color: var(--text-3); }
 
+.btn-view-session {
+  height: 24px; padding: 0 0.625rem;
+  background: none; border: 1px solid var(--border-2);
+  border-radius: var(--r);
+  font-size: 0.6875rem; font-weight: 600;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.btn-view-session:hover { background: var(--bg-3); border-color: var(--accent); color: var(--accent); }
+
 .session-workout {
   font-size: 0.6875rem; font-weight: 600;
   padding: 1px 5px;
@@ -1013,6 +1024,29 @@ button { cursor: pointer; }
 }
 
 .ex-tips-yt:hover { text-decoration: underline; }
+
+/* View-only set stats (plain text, replaces inputs when session is ended) */
+.set-stat {
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  min-width: 52px;
+  font-weight: 500;
+}
+
+.set-stat-reps {
+  min-width: 36px;
+  color: var(--text-2);
+}
+
+.set-stat-tick {
+  min-width: 28px;
+  color: var(--success);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.ex-skipped { opacity: 0.35; }
 
 /* Exercise tips button in SS header */
 .ex-col-label {

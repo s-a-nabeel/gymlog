@@ -297,6 +297,7 @@ const ProgressView = (() => {
                   ${startH ? `<span class="session-time">${startH}</span>` : ''}
                   <span class="session-dur">${s.duration_minutes || 0} min</span>
                   <span class="session-sets">${s.sets_completed || 0} sets</span>
+                  <button class="btn-view-session" data-date="${s.date}" data-workout="${s.workout_key}">View</button>
                 </div>
                 ${s.remarks ? `<div class="session-remarks">${s.remarks}</div>` : ''}
               </div>
@@ -316,6 +317,13 @@ const ProgressView = (() => {
   }
 
   function _attachEvents() {
+    document.querySelectorAll('.btn-view-session').forEach(btn => {
+      btn.addEventListener('click', () => {
+        LogView.setDate(btn.dataset.date, btn.dataset.workout);
+        location.hash = '#log';
+      });
+    });
+
     document.getElementById('btn-export-csv')?.addEventListener('click', () => {
       const csv = DB.exportCSV();
       if (!csv) { alert('No data to export yet.'); return; }

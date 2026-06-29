@@ -3,6 +3,8 @@
 const LogView = (() => {
   let sessionId = null;
   let sessionStarted = false;
+  let sessionEnded = false;    // true when viewing a fully completed session
+  let newSessionMode = false;  // true when "Log another" was clicked
   let sessionTimerInterval = null;
   let sessionStartTime = null;
   let restTimerInterval = null;
@@ -29,11 +31,14 @@ const LogView = (() => {
 
     const workout = WORKOUTS[activeWorkoutKey];
     const existingSessions = DB.getSessionByDate(activeDate);
-    const latestSession = existingSessions[0];
+    // In newSessionMode, ignore any completed session so we start fresh.
+    const latestSession = newSessionMode ? null : existingSessions[0];
+    newSessionMode = false;
 
     if (latestSession) {
       sessionId = latestSession.id;
       sessionStarted = !!latestSession.start_time;
+      sessionEnded = !!latestSession.end_time;
       if (latestSession.start_time && !latestSession.end_time) {
         sessionStartTime = new Date(latestSession.start_time + 'Z');
       }
@@ -41,6 +46,7 @@ const LogView = (() => {
     } else {
       sessionId = null;
       sessionStarted = false;
+      sessionEnded = false;
       completedKeys.clear();
     }
 
@@ -207,6 +213,45 @@ const LogView = (() => {
     `;
   }
 
+  function _renderSetCell(ss, pos, setNum, done, weight, reps, repsPlanned) {
+    if (sessionEnded) {
+      // View-only: plain text, no inputs
+      const w = done ? (weight || '—') : '—';
+      const r = done ? (reps || '—') : '—';
+      return `
+        <div class="ex-cell ${done ? '' : 'ex-skipped'}">
+          <span class="set-stat">${w}${done && weight ? ' kg' : ''}</span>
+          <span class="set-stat set-stat-reps">${r}${done && reps ? ' ×' : ''}</span>
+          <span class="set-stat set-stat-tick">${done ? '✓' : '—'}</span>
+        </div>`;
+    }
+    const exObj = pos === 'A' ? ss.exA : ss.exB;
+    const lastW = pos === 'A'
+      ? (weightCache[ss.exA.name] || DB.getLastWeight(ss.exA.name))
+      : (weightCache[ss.exB.name] || DB.getLastWeight(ss.exB.name));
+    const bothDone = completedKeys.has(makeKey(ss.id, 'A', setNum)) &&
+                     (!ss.exB || completedKeys.has(makeKey(ss.id, 'B', setNum)));
+    return `
+      <div class="ex-cell ${done ? 'ex-done' : ''}">
+        <input class="weight-input" type="number" step="0.5" min="0" placeholder="kg"
+               value="${done ? weight : (lastW || '')}"
+               data-ex="${exObj.name}" data-ss="${ss.id}" data-pos="${pos}" data-set="${setNum}"
+               ${bothDone ? 'readonly' : ''}>
+        <input class="reps-input" type="number" min="1" max="30" placeholder="${repsPlanned}"
+               value="${done ? reps : ''}"
+               data-ex="${exObj.name}" data-ss="${ss.id}" data-pos="${pos}" data-set="${setNum}"
+               ${bothDone ? 'readonly' : ''}>
+        <button class="tick-btn ${done ? 'tick-done' : ''}"
+                data-ss="${ss.id}" data-pos="${pos}" data-set="${setNum}"
+                data-ex="${exObj.name}" data-cat="${exObj.category}"
+                data-reps="${repsPlanned}" data-rest="${ss.rest}"
+                data-has-b="${ss.exB ? '1' : '0'}"
+                ${done ? 'disabled' : ''}>
+          ${done ? '✓' : '○'}
+        </button>
+      </div>`;
+  }
+
   function _renderSetRow(ss, setNum) {
     const keyA = makeKey(ss.id, 'A', setNum);
     const keyB = ss.exB ? makeKey(ss.id, 'B', setNum) : null;
@@ -214,63 +259,36 @@ const LogView = (() => {
     const doneB = keyB ? completedKeys.has(keyB) : true;
     const bothDone = doneA && doneB;
 
-    // Determine if this is the "next" set
     const isNext = !bothDone && _isNextSet(ss, setNum);
     const prevBothDone = setNum === 1 ? true : (() => {
       const pk = makeKey(ss.id, 'A', setNum - 1);
       const pkB = ss.exB ? makeKey(ss.id, 'B', setNum - 1) : null;
       return completedKeys.has(pk) && (!pkB || completedKeys.has(pkB));
     })();
+    const locked = !sessionEnded && !bothDone && !prevBothDone && setNum > 1;
 
-    const locked = !bothDone && !prevBothDone && setNum > 1;
+    const wA = _getLoggedWeight(ss.id, 'A', setNum);
+    const rA = _getLoggedReps(ss.id, 'A', setNum);
+    const wB = ss.exB ? _getLoggedWeight(ss.id, 'B', setNum) : '';
+    const rB = ss.exB ? _getLoggedReps(ss.id, 'B', setNum) : '';
 
-    const lastWA = weightCache[ss.exA.name] || DB.getLastWeight(ss.exA.name);
-    weightCache[ss.exA.name] = lastWA;
-    const lastWB = ss.exB ? (weightCache[ss.exB.name] || DB.getLastWeight(ss.exB.name)) : 0;
-    if (ss.exB) weightCache[ss.exB.name] = lastWB;
+    if (!sessionEnded) {
+      // Pre-cache last weights for the active session inputs
+      const lastWA = weightCache[ss.exA.name] || DB.getLastWeight(ss.exA.name);
+      weightCache[ss.exA.name] = lastWA;
+      if (ss.exB) {
+        const lastWB = weightCache[ss.exB.name] || DB.getLastWeight(ss.exB.name);
+        weightCache[ss.exB.name] = lastWB;
+      }
+    }
 
     return `
       <div class="set-row ${bothDone ? 'set-done' : ''} ${isNext ? 'set-next' : ''} ${locked ? 'set-locked' : ''}"
            data-ss-id="${ss.id}" data-set-num="${setNum}">
         <span class="set-num-col">Set ${setNum}</span>
         <div class="ex-cols">
-          <div class="ex-cell ${doneA ? 'ex-done' : ''}">
-            <input class="weight-input" type="number" step="0.5" min="0" placeholder="kg"
-                   value="${doneA ? _getLoggedWeight(ss.id, 'A', setNum) : (lastWA || '')}"
-                   data-ex="${ss.exA.name}" data-ss="${ss.id}" data-pos="A" data-set="${setNum}"
-                   ${bothDone ? 'readonly' : ''}>
-            <input class="reps-input" type="number" min="1" max="30" placeholder="${ss.reps}"
-                   value="${doneA ? _getLoggedReps(ss.id, 'A', setNum) : ''}"
-                   data-ex="${ss.exA.name}" data-ss="${ss.id}" data-pos="A" data-set="${setNum}"
-                   ${bothDone ? 'readonly' : ''}>
-            <button class="tick-btn ${doneA ? 'tick-done' : ''}"
-                    data-ss="${ss.id}" data-pos="A" data-set="${setNum}"
-                    data-ex="${ss.exA.name}" data-cat="${ss.exA.category}"
-                    data-reps="${ss.reps}" data-rest="${ss.rest}"
-                    data-has-b="${ss.exB ? '1' : '0'}"
-                    ${doneA ? 'disabled' : ''}>
-              ${doneA ? '✓' : '○'}
-            </button>
-          </div>
-          ${ss.exB ? `
-          <div class="ex-cell ${doneB ? 'ex-done' : ''}">
-            <input class="weight-input" type="number" step="0.5" min="0" placeholder="kg"
-                   value="${doneB ? _getLoggedWeight(ss.id, 'B', setNum) : (lastWB || '')}"
-                   data-ex="${ss.exB.name}" data-ss="${ss.id}" data-pos="B" data-set="${setNum}"
-                   ${bothDone ? 'readonly' : ''}>
-            <input class="reps-input" type="number" min="1" max="30" placeholder="${ss.reps}"
-                   value="${doneB ? _getLoggedReps(ss.id, 'B', setNum) : ''}"
-                   data-ex="${ss.exB.name}" data-ss="${ss.id}" data-pos="B" data-set="${setNum}"
-                   ${bothDone ? 'readonly' : ''}>
-            <button class="tick-btn ${doneB ? 'tick-done' : ''}"
-                    data-ss="${ss.id}" data-pos="B" data-set="${setNum}"
-                    data-ex="${ss.exB.name}" data-cat="${ss.exB.category}"
-                    data-reps="${ss.reps}" data-rest="${ss.rest}"
-                    data-has-b="1"
-                    ${doneB ? 'disabled' : ''}>
-              ${doneB ? '✓' : '○'}
-            </button>
-          </div>` : ''}
+          ${_renderSetCell(ss, 'A', setNum, doneA, wA, rA, ss.reps)}
+          ${ss.exB ? _renderSetCell(ss, 'B', setNum, doneB, wB, rB, ss.reps) : ''}
         </div>
         ${bothDone ? `<span class="set-done-time">${_getSetDoneTime(ss.id, setNum)}</span>` : ''}
       </div>
@@ -501,10 +519,12 @@ const LogView = (() => {
       render();
     });
 
-    // New session (re-log same day)
+    // New session (re-log same day) — ignore the completed session this render cycle
     document.getElementById('btn-new-session')?.addEventListener('click', () => {
+      newSessionMode = true;
       sessionId = null;
       sessionStarted = false;
+      sessionEnded = false;
       completedKeys.clear();
       render();
     });
@@ -730,5 +750,17 @@ const LogView = (() => {
     _hideRestTimer();
   }
 
-  return { render, cleanup };
+  // Called from Progress view to deep-link to a specific past session.
+  function setDate(date, workoutKey) {
+    activeDate = date;
+    activeWorkoutKey = workoutKey || null;
+    sessionId = null;
+    sessionStarted = false;
+    sessionEnded = false;
+    newSessionMode = false;
+    completedKeys.clear();
+    weightCache = {};
+  }
+
+  return { render, cleanup, setDate };
 })();
