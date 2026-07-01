@@ -148,7 +148,7 @@ const LogView = (() => {
           <div class="opening-item">
             <span class="opening-name">
               ${item.name}
-              <button class="ex-tip-btn" data-ex="${item.name.replace(/"/g, '&quot;')}" title="Form tips">ⓘ</button>
+              <button class="ex-tip-btn" data-ex="${item.name.replace(/"/g, '&quot;')}" title="Form tips"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5" r="0.1" stroke-width="2.5" fill="currentColor"/></svg></button>
             </span>
             <span class="opening-detail">${item.detail}</span>
             <span class="opening-dur">${item.duration}</span>
@@ -199,7 +199,7 @@ const LogView = (() => {
     function exLabel(name) {
       return `<span class="ex-col-label">
         <span class="ex-col-label-text">${name}</span>
-        <button class="ex-tip-btn" data-ex="${name.replace(/"/g, '&quot;')}" title="Form tips">ⓘ</button>
+        <button class="ex-tip-btn" data-ex="${name.replace(/"/g, '&quot;')}" title="Form tips"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5" r="0.1" stroke-width="2.5" fill="currentColor"/></svg></button>
       </span>`;
     }
     return `

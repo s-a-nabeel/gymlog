@@ -20,7 +20,7 @@
   --info:       #2563eb;
   --info-bg:    #eff6ff;
 
-  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font: 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --r: 2px;           /* Sharp but not zero */
   --nav-h: 60px;
   --header-h: 52px;
@@ -32,7 +32,7 @@
    ========================================= */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { font-size: 15px; -webkit-text-size-adjust: 100%; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
 
 body {
   font-family: var(--font);
@@ -40,12 +40,32 @@ body {
   color: var(--text);
   line-height: 1.5;
   min-height: 100vh;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 700;
 }
 
 input, select, textarea, button {
   font-family: inherit;
   font-size: inherit;
   color: inherit;
+  font-weight: inherit;
+}
+
+/* Keep coaching cue and session notes readable in mixed case */
+.ex-tips-cue,
+.remarks-input {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 700;
+}
+
+/* Tighten letter-spacing for number inputs */
+.weight-input,
+.reps-input,
+.session-timer,
+.rest-countdown {
+  letter-spacing: 0;
 }
 
 /* Remove number input spinners */
@@ -100,8 +120,8 @@ button { cursor: pointer; }
 
 .header-logo {
   font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: -0.02em;
+  font-size: 1.125rem;
+  letter-spacing: 0.08em;
   color: var(--accent);
   white-space: nowrap;
 }
@@ -133,7 +153,7 @@ button { cursor: pointer; }
 .header-nav-btn.nav-active {
   color: var(--accent);
   border-bottom-color: var(--accent);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* =========================================
@@ -168,7 +188,7 @@ button { cursor: pointer; }
   border: none; background: none;
   color: var(--text-3);
   font-size: 0.6875rem;
-  font-weight: 500;
+  font-weight: 700;
   padding: 0.5rem;
   transition: color 0.15s;
 }
@@ -190,14 +210,14 @@ button { cursor: pointer; }
 }
 
 .log-date {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.04em;
 }
 
 .log-workout-badge {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-top: 2px;
   color: var(--text-2);
   letter-spacing: 0.03em;
@@ -205,9 +225,9 @@ button { cursor: pointer; }
 }
 
 .session-timer {
-  font-size: 1.5rem;
+  font-size: 1.625rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
   color: var(--accent);
 }
@@ -243,7 +263,7 @@ button { cursor: pointer; }
   height: 40px; padding: 0 1.25rem;
   background: var(--accent); color: white;
   border: none; border-radius: var(--r);
-  font-size: 0.875rem; font-weight: 600;
+  font-size: 0.875rem; font-weight: 700;
   letter-spacing: 0.01em;
   transition: background 0.15s;
 }
@@ -255,7 +275,7 @@ button { cursor: pointer; }
   background: var(--bg-3); color: var(--text);
   border: 1px solid var(--border-2);
   border-radius: var(--r);
-  font-size: 0.875rem; font-weight: 600;
+  font-size: 0.875rem; font-weight: 700;
   transition: background 0.15s;
 }
 
@@ -265,7 +285,7 @@ button { cursor: pointer; }
 
 .done-badge {
   display: inline-flex; align-items: center; gap: 0.25rem;
-  color: var(--success); font-weight: 600; font-size: 0.875rem;
+  color: var(--success); font-weight: 700; font-size: 0.875rem;
 }
 
 .done-meta { font-size: 0.8125rem; color: var(--text-2); }
@@ -287,7 +307,7 @@ button { cursor: pointer; }
 .block-title {
   padding: 0.5rem 0.875rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-3);
@@ -303,7 +323,7 @@ button { cursor: pointer; }
 
 .opening-item:last-child { border-bottom: none; }
 
-.opening-name { font-size: 0.875rem; font-weight: 500; flex: 1; }
+.opening-name { font-size: 0.875rem; font-weight: 700; flex: 1; }
 .opening-detail { font-size: 0.75rem; color: var(--text-2); }
 .opening-dur { font-size: 0.75rem; color: var(--text-3); white-space: nowrap; }
 
@@ -345,7 +365,7 @@ button { cursor: pointer; }
 }
 
 .ss-exercises {
-  font-size: 0.8125rem; font-weight: 500;
+  font-size: 0.8125rem; font-weight: 700;
   color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -372,7 +392,7 @@ button { cursor: pointer; }
 .set-row-header { padding: 0.375rem 0.875rem; background: var(--bg-2); }
 
 .set-num-col {
-  font-size: 0.6875rem; font-weight: 600;
+  font-size: 0.6875rem; font-weight: 700;
   color: var(--text-3); width: 38px; flex-shrink: 0;
   text-transform: uppercase; letter-spacing: 0.04em;
 }
@@ -384,7 +404,7 @@ button { cursor: pointer; }
 
 .ex-col-label {
   flex: 1; font-size: 0.75rem;
-  color: var(--text-2); font-weight: 500;
+  color: var(--text-2); font-weight: 700;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -397,9 +417,9 @@ button { cursor: pointer; }
 
 .weight-input {
   width: 52px; flex-shrink: 0;
-  height: 32px; border: 1px solid var(--border-2);
+  height: 38px; border: 1px solid var(--border-2);
   border-radius: var(--r); text-align: center;
-  font-size: 0.8125rem; background: var(--bg);
+  font-size: 0.875rem; background: var(--bg);
   outline: none;
 }
 
@@ -408,9 +428,9 @@ button { cursor: pointer; }
 
 .reps-input {
   width: 40px; flex-shrink: 0;
-  height: 32px; border: 1px solid var(--border-2);
+  height: 38px; border: 1px solid var(--border-2);
   border-radius: var(--r); text-align: center;
-  font-size: 0.8125rem; background: var(--bg);
+  font-size: 0.875rem; background: var(--bg);
   outline: none;
   color: var(--text-2);
 }
@@ -419,11 +439,11 @@ button { cursor: pointer; }
 .reps-input[readonly] { background: transparent; border-color: transparent; }
 
 .tick-btn {
-  width: 32px; height: 32px; flex-shrink: 0;
+  width: 38px; height: 38px; flex-shrink: 0;
   border: 2px solid var(--border-2);
   border-radius: 50%;
   background: none;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-3);
   display: flex; align-items: center; justify-content: center;
   transition: all 0.15s;
@@ -470,7 +490,7 @@ button { cursor: pointer; }
 }
 
 .remarks-label {
-  font-size: 0.75rem; font-weight: 600;
+  font-size: 0.75rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3);
 }
 
@@ -502,12 +522,12 @@ button { cursor: pointer; }
 }
 
 .diet-title {
-  font-size: 0.8125rem; font-weight: 600; flex: 1;
+  font-size: 0.8125rem; font-weight: 700; flex: 1;
 }
 
 .diet-progress {
   font-size: 0.75rem; color: var(--success);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .diet-chevron { font-size: 0.625rem; color: var(--text-3); }
@@ -558,14 +578,14 @@ button { cursor: pointer; }
 }
 
 .rest-label {
-  font-size: 0.75rem; font-weight: 600;
+  font-size: 0.75rem; font-weight: 700;
   letter-spacing: 0.08em; text-transform: uppercase;
   opacity: 0.6;
 }
 
 .rest-countdown {
-  font-size: 2.5rem; font-weight: 700;
-  letter-spacing: -0.04em;
+  font-size: 2.75rem; font-weight: 700;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 
@@ -636,7 +656,7 @@ button { cursor: pointer; }
   margin-bottom: 0.25rem;
 }
 
-.stat-label { font-size: 0.6875rem; color: var(--text-3); font-weight: 500; }
+.stat-label { font-size: 0.6875rem; color: var(--text-3); font-weight: 700; }
 
 /* Heatmap */
 .heatmap-section {
@@ -701,7 +721,7 @@ button { cursor: pointer; }
 .chart-card-half { grid-column: span 1; }
 
 .chart-title {
-  font-size: 0.75rem; font-weight: 600;
+  font-size: 0.75rem; font-weight: 700;
   color: var(--text-2); margin-bottom: 0.75rem;
 }
 
@@ -722,7 +742,7 @@ button { cursor: pointer; }
 .session-row-left { display: flex; align-items: center; gap: 0.5rem; flex: 1; }
 .session-row-right { display: flex; align-items: center; gap: 0.5rem; }
 
-.session-date { font-size: 0.8125rem; font-weight: 500; }
+.session-date { font-size: 0.8125rem; font-weight: 700; }
 .session-time { font-size: 0.75rem; color: var(--text-2); }
 .session-dur { font-size: 0.75rem; color: var(--text-2); }
 .session-sets { font-size: 0.75rem; color: var(--text-3); }
@@ -731,7 +751,7 @@ button { cursor: pointer; }
   height: 24px; padding: 0 0.625rem;
   background: none; border: 1px solid var(--border-2);
   border-radius: var(--r);
-  font-size: 0.6875rem; font-weight: 600;
+  font-size: 0.6875rem; font-weight: 700;
   color: var(--text-2);
   white-space: nowrap;
 }
@@ -739,7 +759,7 @@ button { cursor: pointer; }
 .btn-view-session:hover { background: var(--bg-3); border-color: var(--accent); color: var(--accent); }
 
 .session-workout {
-  font-size: 0.6875rem; font-weight: 600;
+  font-size: 0.6875rem; font-weight: 700;
   padding: 1px 5px;
   border-radius: 2px;
   background: var(--bg-3);
@@ -821,7 +841,7 @@ button { cursor: pointer; }
 .field-group { display: flex; flex-direction: column; gap: 0.25rem; }
 
 .field-label {
-  font-size: 0.75rem; font-weight: 500; color: var(--text-2);
+  font-size: 0.75rem; font-weight: 700; color: var(--text-2);
 }
 
 .field-input {
@@ -840,7 +860,7 @@ button { cursor: pointer; }
   height: 36px; padding: 0 1.25rem;
   background: var(--accent); color: white;
   border: none; border-radius: var(--r);
-  font-size: 0.875rem; font-weight: 600;
+  font-size: 0.875rem; font-weight: 700;
 }
 
 .btn-save:hover { background: var(--accent-2); }
@@ -849,7 +869,7 @@ button { cursor: pointer; }
 .save-confirm {
   display: inline-block;
   margin: 0.75rem 1rem;
-  font-size: 0.8125rem; color: var(--success); font-weight: 500;
+  font-size: 0.8125rem; color: var(--success); font-weight: 700;
 }
 
 /* Schedule */
@@ -863,7 +883,7 @@ button { cursor: pointer; }
   border: none; background: none;
   font-size: 0.8125rem; color: var(--text-2);
   border-bottom: 2px solid transparent;
-  font-weight: 500;
+  font-weight: 700;
   transition: all 0.15s;
 }
 
@@ -879,7 +899,7 @@ button { cursor: pointer; }
 }
 
 .day-label {
-  font-size: 0.8125rem; font-weight: 500; width: 90px; flex-shrink: 0;
+  font-size: 0.8125rem; font-weight: 700; width: 90px; flex-shrink: 0;
 }
 
 .sched-select { flex: 1; }
@@ -894,7 +914,7 @@ button { cursor: pointer; }
   text-align: left;
   padding: 0.375rem 0.5rem;
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-3);
@@ -943,7 +963,7 @@ button { cursor: pointer; }
   height: 36px; padding: 0 1rem;
   background: none; border: 1px solid var(--danger);
   color: var(--danger); border-radius: var(--r);
-  font-size: 0.875rem; font-weight: 600;
+  font-size: 0.875rem; font-weight: 700;
   white-space: nowrap;
 }
 
@@ -1017,10 +1037,12 @@ button { cursor: pointer; }
 }
 
 .ex-tips-yt {
-  display: inline-flex; align-items: center; gap: 0.375rem;
+  display: inline-flex; align-items: center; gap: 0.5rem;
   color: var(--danger);
-  font-size: 0.8125rem; font-weight: 600;
+  font-size: 1rem; font-weight: 700;
   text-decoration: none;
+  padding: 0.5rem 0;
+  min-height: 44px;
 }
 
 .ex-tips-yt:hover { text-decoration: underline; }
@@ -1031,7 +1053,7 @@ button { cursor: pointer; }
   font-variant-numeric: tabular-nums;
   color: var(--text);
   min-width: 52px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .set-stat-reps {
@@ -1060,13 +1082,16 @@ button { cursor: pointer; }
 
 .ex-tip-btn {
   background: none; border: none;
-  font-size: 0.625rem; color: var(--text-3);
-  padding: 0; line-height: 1;
+  color: var(--text-3);
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
+  border-radius: 50%;
 }
 
-.ex-tip-btn:hover { color: var(--info); }
+.ex-tip-btn svg { width: 16px; height: 16px; }
+.ex-tip-btn:hover { color: var(--info); background: var(--info-bg); }
 
 /* =========================================
    Diet checklist config (Settings)
@@ -1131,9 +1156,10 @@ button { cursor: pointer; }
     padding-bottom: 2rem;
   }
 
-  /* Log view — wider inputs */
-  .weight-input { width: 64px; }
-  .reps-input { width: 48px; }
+  /* Log view — wider inputs on desktop */
+  .weight-input { width: 64px; height: 34px; font-size: 0.8125rem; }
+  .reps-input { width: 48px; height: 34px; font-size: 0.8125rem; }
+  .tick-btn { width: 34px; height: 34px; font-size: 0.875rem; }
 
   /* Stats row */
   .stats-grid { grid-template-columns: repeat(4, 1fr); }
@@ -1154,6 +1180,6 @@ button { cursor: pointer; }
   .chart-card, .chart-card-half { grid-column: span 1; }
 
   .ex-cell { flex-wrap: wrap; }
-  .weight-input { width: 46px; }
-  .reps-input { width: 36px; }
+  .weight-input { width: 48px; }
+  .reps-input { width: 38px; }
 }
